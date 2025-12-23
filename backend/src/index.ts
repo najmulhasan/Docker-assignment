@@ -1,14 +1,14 @@
-const express = require('express')
-const cors = require('cors')
+import express, { Request, Response, NextFunction } from 'express'
+import cors from 'cors'
 import 'express-async-errors'
-const mongoose = require('mongoose')
-const dotenv = require('dotenv')
+import mongoose from 'mongoose'
+import dotenv from 'dotenv'
 
-const authRoutes = require('./routes/auth')
-const productRoutes = require('./routes/products')
-const cartRoutes = require('./routes/cart')
-const orderRoutes = require('./routes/orders')
-const { errorHandler } = require('./middleware/auth')
+import authRoutes from './routes/auth'
+import productRoutes from './routes/products'
+import cartRoutes from './routes/cart'
+import orderRoutes from './routes/orders'
+import { errorHandler } from './middleware/auth'
 
 dotenv.config()
 
@@ -44,6 +44,11 @@ app.use(errorHandler)
 // 404 Handler
 app.use((req: Request, res: Response) => {
   res.status(404).json({ message: 'Route not found' })
+})
+
+// Fallback error handler type safety
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  next(err)
 })
 
 app.listen(PORT, () => {

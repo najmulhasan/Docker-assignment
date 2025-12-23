@@ -19,10 +19,10 @@ export default function Home() {
               Cart
             </Link>
             <Link
-              href="/login"
+              href="/checkout"
               className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
             >
-              Sign In
+              Checkout
             </Link>
           </div>
         </div>

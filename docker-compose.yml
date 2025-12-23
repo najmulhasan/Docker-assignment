@@ -1,0 +1,83 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: ecommerce-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: ecommerce
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - ecommerce-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    image: nazmulhasan91/ecommerce-backend:v1
+    container_name: ecommerce-backend
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGODB_URI: mongodb://mongo:27017/ecommerce
+      JWT_SECRET: b7d8f5cba2d84e8eac1c8c5e3d34af2f5a9cbbd1f8e2f4d69cbb5e0f3f4c9e2a
+      JWT_EXPIRY: 7d
+    ports:
+      - "5000:5000"
+    networks:
+      - ecommerce-net
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+        NEXT_PUBLIC_API_URL: http://backend:5000/api
+    image: nazmulhasan91/ecommerce-frontend:v1
+    container_name: ecommerce-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    networks:
+      - ecommerce-net
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+
+networks:
+  ecommerce-net:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local
+
+
